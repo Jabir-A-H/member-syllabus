@@ -363,8 +363,6 @@
                 
                 const badges = [];
                 if(book.has_desc) badges.push(`<span class="px-2 py-0.5 text-[10px] rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300" title="Has Text">📄</span>`);
-                else if(book.has_pdf) badges.push(`<span class="px-2 py-0.5 text-[10px] rounded-md bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400" title="Has PDF">📕</span>`);
-                
                 if(book.has_audio) badges.push(`<span class="px-2 py-0.5 text-[10px] rounded-md bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400" title="Audiobook">🎧</span>`);
                 if(isComp) badges.push(`<span class="px-1 py-0.5 text-[10px] text-green-500" title="Completed">✅</span>`);
 
@@ -420,8 +418,20 @@
                     const translator = data.book_translator && data.book_translator !== "null" ? data.book_translator : '';
                     
                     let pdfLink = '';
+                    let pdfViewerHTML = '';
                     if (data.book_pdf && data.book_pdf !== "null" && data.book_pdf !== "") {
-                        pdfLink = `<a href="${data.book_pdf}" target="_blank" class="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 rounded-lg text-sm font-semibold transition border border-red-200 dark:border-red-800/50 inline-block">📄 View PDF</a>`;
+                        pdfLink = `
+                            <button id="btn-read-pdf" onclick="document.getElementById('pdf-viewer-container').classList.remove('hidden'); document.getElementById('pdf-viewer-frame').src='${data.book_pdf}'; this.style.display='none';" class="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 rounded-lg text-sm font-semibold transition border border-red-200 dark:border-red-800/50">📕 Read Original PDF</button>
+                            <a href="${data.book_pdf}" target="_blank" download class="px-4 py-2 bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 rounded-lg text-sm font-semibold transition hover:bg-gray-50 dark:hover:bg-gray-700 inline-block">⬇ Download PDF</a>
+                        `;
+                        pdfViewerHTML = `
+                        <div id="pdf-viewer-container" class="hidden mt-6 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-2 md:p-4">
+                            <div class="flex justify-between items-center mb-2 px-2">
+                                <span class="text-sm font-bold text-gray-700 dark:text-gray-300">PDF Viewer</span>
+                                <button onclick="document.getElementById('pdf-viewer-container').classList.add('hidden'); document.getElementById('pdf-viewer-frame').src=''; document.getElementById('btn-read-pdf').style.display='inline-block';" class="text-gray-500 hover:text-red-500 text-sm font-bold">✖ Close</button>
+                            </div>
+                            <iframe id="pdf-viewer-frame" class="w-full h-[70vh] md:h-[85vh] rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm bg-white" title="PDF Viewer"></iframe>
+                        </div>`;
                     }
 
                     // Audio
@@ -447,17 +457,11 @@
 
                     let descriptionHTML = '';
                     const hasDesc = data.book_description && data.book_description !== "null" && data.book_description.trim() !== "";
-                    const hasPdf = data.book_pdf && data.book_pdf !== "null" && data.book_pdf.trim() !== "";
                     
                     if (hasDesc) {
                         descriptionHTML = `<div class="prose prose-blue dark:prose-invert max-w-none description-content text-gray-700 dark:text-gray-300 leading-relaxed">${data.book_description}</div>`;
-                    } else if (hasPdf) {
-                        descriptionHTML = `<div class="bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 mb-4 p-2 md:p-4">
-                            <p class="text-center text-gray-500 italic mb-4 text-sm mt-2">No text available, but you can read the PDF directly below:</p>
-                            <iframe src="${data.book_pdf}" class="w-full h-[70vh] md:h-[85vh] rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm bg-white" title="PDF Viewer"></iframe>
-                        </div>`;
                     } else {
-                        descriptionHTML = `<div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-center text-gray-500 italic">No description or PDF available.</div>`;
+                        descriptionHTML = `<div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-center text-gray-500 italic">No text description available.</div>`;
                     }
 
                     // Action Buttons State
@@ -486,6 +490,8 @@
                             <div class="mt-4">
                                 ${descriptionHTML}
                             </div>
+                            
+                            ${pdfViewerHTML}
                             
                         </article>
                     `;
