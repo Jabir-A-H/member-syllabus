@@ -494,9 +494,6 @@
                         audioEl.onplay = () => {
                             audioWrap.classList.add('sticky', 'top-4', 'shadow-2xl');
                         };
-                        audioEl.onpause = () => {
-                            audioWrap.classList.remove('sticky', 'top-4', 'shadow-2xl');
-                        };
                     }
                 })
                 .catch(err => {
