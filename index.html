@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Member Syllabus Viewer</title>
+    <!-- PWA Setup -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -38,13 +43,8 @@
             background: #94a3b8; 
         }
         
-        .description-content img {
-            max-width: 100%;
-            height: auto;
-        }
-        .description-content p {
-            margin-bottom: 1em;
-        }
+        .description-content img { max-width: 100%; height: auto; }
+        .description-content p { margin-bottom: 1em; }
         
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(10px); }
@@ -54,44 +54,68 @@
             animation: fadeInUp 0.4s ease-out forwards;
         }
 
-        /* Sidebar Transition for Desktop */
-        #sidebar {
-            transition: margin-left 0.3s ease-in-out;
-        }
-        .sidebar-collapsed {
-            margin-left: -24rem; /* Matches md:w-96 */
-        }
+        #sidebar { transition: margin-left 0.3s ease-in-out; }
+        .sidebar-collapsed { margin-left: -24rem; }
+        
+        /* Font customizer classes */
+        .reader-sans { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .reader-serif { font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; }
+        .reader-sm { font-size: 0.875rem; }
+        .reader-base { font-size: 1rem; }
+        .reader-lg { font-size: 1.125rem; }
+        .reader-xl { font-size: 1.25rem; }
+        .reader-2xl { font-size: 1.5rem; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 flex h-screen overflow-hidden transition-colors duration-200">
 
     <!-- Sidebar -->
     <aside id="sidebar" class="w-full md:w-80 lg:w-96 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col transition-all duration-300 z-10 absolute md:relative h-full">
-        <!-- Header & Controls -->
-        <div class="p-4 border-b border-gray-200 dark:border-gray-700 shadow-sm z-10">
-            <div class="flex justify-between items-center mb-4">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 shadow-sm z-10 space-y-3">
+            <div class="flex justify-between items-center">
                 <h2 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">Book Viewer</h2>
-                <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition" aria-label="Toggle Dark Mode">
-                    <!-- Sun/Moon icon set in JS -->
-                    <span id="theme-icon">🌙</span>
-                </button>
+                <div class="flex gap-2">
+                    <button id="export-notes-btn" title="Export Notes" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-gray-600 dark:text-gray-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    </button>
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                </div>
             </div>
             
             <div class="relative">
-                <input type="text" id="search" placeholder="Search books..." class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-sm">
-                <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search" placeholder="Search books..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                <svg class="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
             
-            <div class="mt-3 flex items-center space-x-2 text-sm">
-                <label class="flex items-center space-x-2 cursor-pointer group">
-                    <input type="checkbox" id="filter-desc" class="rounded text-blue-500 focus:ring-blue-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 w-4 h-4 transition cursor-pointer">
-                    <span class="text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition">Has Description</span>
+            <div class="flex flex-wrap gap-2 text-xs">
+                <label class="flex items-center space-x-1 cursor-pointer">
+                    <input type="checkbox" id="filter-desc" class="rounded text-blue-500">
+                    <span class="text-gray-600 dark:text-gray-300">Has Desc</span>
                 </label>
-                <span id="book-count" class="text-gray-500 dark:text-gray-400 ml-auto text-xs font-medium bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">0 items</span>
+                <label class="flex items-center space-x-1 cursor-pointer">
+                    <input type="checkbox" id="filter-fav" class="rounded text-yellow-500">
+                    <span class="text-gray-600 dark:text-gray-300 flex items-center gap-1"><svg class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg> Favs</span>
+                </label>
+                <label class="flex items-center space-x-1 cursor-pointer">
+                    <input type="checkbox" id="filter-comp" class="rounded text-green-500">
+                    <span class="text-gray-600 dark:text-gray-300 flex items-center gap-1"><svg class="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> Done</span>
+                </label>
+            </div>
+            
+            <!-- Progress Tracker -->
+            <div class="mt-2">
+                <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <span>Reading Progress</span>
+                    <span id="progress-text">0 / 0 (0%)</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                    <div id="progress-bar" class="bg-green-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
             </div>
         </div>
 
-        <!-- List -->
         <div id="list" class="flex-1 overflow-y-auto p-2 space-y-1 bg-gray-50/50 dark:bg-gray-900/50">
             <div class="p-4 text-center text-gray-500 flex flex-col items-center justify-center h-40">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-2"></div>
@@ -102,204 +126,219 @@
 
     <!-- Main Content -->
     <main id="main-content" class="flex-1 flex flex-col h-full bg-gray-50 dark:bg-gray-900 w-full absolute md:relative z-20 md:z-auto transition-transform duration-300 transform translate-x-full md:translate-x-0">
-        <!-- Top bar (Visible on Mobile, Optional on Desktop for toggling sidebar) -->
-        <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center shadow-sm sticky top-0 z-10">
-            <!-- Mobile Back Button -->
-            <button id="back-btn" class="md:hidden mr-3 p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            </button>
+        <!-- Top bar -->
+        <div class="p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-between shadow-sm sticky top-0 z-20">
+            <div class="flex items-center">
+                <button id="back-btn" class="md:hidden mr-3 p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </button>
+                <button id="toggle-sidebar-btn" class="hidden md:flex items-center gap-2 mr-3 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 transition text-sm font-medium">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                    <span id="toggle-sidebar-text">Hide Sidebar</span>
+                </button>
+                <span class="font-semibold truncate max-w-[150px] sm:max-w-xs text-gray-800 dark:text-gray-200" id="mobile-title">Book Details</span>
+            </div>
             
-            <!-- Desktop Toggle Sidebar Button -->
-            <button id="toggle-sidebar-btn" class="hidden md:flex items-center gap-2 mr-3 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-gray-700 dark:text-gray-300">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
-                <span id="toggle-sidebar-text">Hide Sidebar</span>
-            </button>
-            
-            <span class="font-semibold truncate text-gray-800 dark:text-gray-200 ml-2" id="mobile-title">Book Details</span>
+            <!-- Font Settings -->
+            <div class="flex items-center gap-1 sm:gap-2">
+                <button id="font-decrease" class="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Decrease Font">A-</button>
+                <button id="font-increase" class="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold" title="Increase Font">A+</button>
+                <button id="font-toggle" class="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium border border-gray-200 dark:border-gray-700 ml-1">Serif</button>
+            </div>
         </div>
         
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-            <!-- Added id="book-content" and aria-label for TTS optimization -->
-            <div id="viewer-area" aria-label="Main Book Content" class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-10 min-h-full transition-all duration-300">
-                <div class="flex flex-col items-center justify-center h-[60vh] text-gray-400 dark:text-gray-500 space-y-4">
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative">
+            <div id="viewer-area" aria-label="Main Book Content" class="reader-base reader-sans max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-10 min-h-full transition-all duration-300">
+                <div class="flex flex-col items-center justify-center h-[60vh] text-gray-400">
                     <svg class="w-24 h-24 opacity-20" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
-                    <p class="text-xl font-medium">Select a book to read its details</p>
-                    <p class="text-sm opacity-75">Use the sidebar to search and browse the syllabus</p>
+                    <p class="text-xl font-medium mt-4">Select a book to read its details</p>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
+        // --- 1. Service Worker Registration ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW setup failed:', err));
+            });
+        }
+
+        // --- State Management ---
         let fullIndex = [];
+        let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        let completed = JSON.parse(localStorage.getItem('completed') || '[]');
+        let fontSizes = ['reader-sm', 'reader-base', 'reader-lg', 'reader-xl', 'reader-2xl'];
+        let currentFontIndex = parseInt(localStorage.getItem('fontIndex') || '1');
+        let isSerif = localStorage.getItem('isSerif') === 'true';
+
+        // --- DOM Elements ---
         const listEl = document.getElementById('list');
         const viewEl = document.getElementById('viewer-area');
         const searchInput = document.getElementById('search');
         const filterDesc = document.getElementById('filter-desc');
+        const filterFav = document.getElementById('filter-fav');
+        const filterComp = document.getElementById('filter-comp');
         const countEl = document.getElementById('book-count');
-        
-        // Mobile navigation
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('main-content');
-        const backBtn = document.getElementById('back-btn');
-        const mobileTitle = document.getElementById('mobile-title');
         
-        // Desktop sidebar toggle
-        const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
-        const toggleSidebarText = document.getElementById('toggle-sidebar-text');
-        let isSidebarCollapsed = false;
-
-        // Theme Setup
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        
+        // --- Theme ---
         function setTheme(isDark) {
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-                themeIcon.textContent = '☀️';
-            } else {
-                document.documentElement.classList.remove('dark');
-                themeIcon.textContent = '🌙';
-            }
+            document.documentElement.classList.toggle('dark', isDark);
+            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         }
+        setTheme(localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches));
+        document.getElementById('theme-toggle').onclick = () => setTheme(!document.documentElement.classList.contains('dark'));
+
+        // --- Typography Settings ---
+        function applyTypography() {
+            viewEl.classList.remove(...fontSizes, 'reader-sans', 'reader-serif');
+            viewEl.classList.add(fontSizes[currentFontIndex]);
+            viewEl.classList.add(isSerif ? 'reader-serif' : 'reader-sans');
+            document.getElementById('font-toggle').textContent = isSerif ? 'Sans' : 'Serif';
+            
+            localStorage.setItem('fontIndex', currentFontIndex);
+            localStorage.setItem('isSerif', isSerif);
+        }
         
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            setTheme(true);
-        } else {
-            setTheme(false);
+        document.getElementById('font-increase').onclick = () => { if(currentFontIndex < fontSizes.length-1) { currentFontIndex++; applyTypography(); } };
+        document.getElementById('font-decrease').onclick = () => { if(currentFontIndex > 0) { currentFontIndex--; applyTypography(); } };
+        document.getElementById('font-toggle').onclick = () => { isSerif = !isSerif; applyTypography(); };
+        applyTypography(); // Apply on load
+
+        // --- Sidebar Toggles ---
+        let isSidebarCollapsed = false;
+        document.getElementById('toggle-sidebar-btn').onclick = () => {
+            isSidebarCollapsed = !isSidebarCollapsed;
+            sidebar.classList.toggle('sidebar-collapsed', isSidebarCollapsed);
+            sidebar.setAttribute('aria-hidden', isSidebarCollapsed);
+            document.getElementById('toggle-sidebar-text').textContent = isSidebarCollapsed ? 'Show Sidebar' : 'Hide Sidebar';
+        };
+        document.getElementById('back-btn').onclick = () => {
+            mainContent.classList.add('translate-x-full');
+            sidebar.classList.remove('-translate-x-full');
+        };
+
+        // --- Fetch & Render List ---
+        function updateProgress() {
+            if(!fullIndex.length) return;
+            const percentage = Math.round((completed.length / fullIndex.length) * 100);
+            progressBar.style.width = percentage + '%';
+            progressText.textContent = `${completed.length} / ${fullIndex.length} (${percentage}%)`;
         }
 
-        themeToggle.addEventListener('click', () => {
-            setTheme(!document.documentElement.classList.contains('dark'));
-        });
-
-        // Desktop Sidebar Toggle Logic
-        toggleSidebarBtn.addEventListener('click', () => {
-            isSidebarCollapsed = !isSidebarCollapsed;
-            if (isSidebarCollapsed) {
-                sidebar.classList.add('sidebar-collapsed');
-                sidebar.setAttribute('aria-hidden', 'true');
-                toggleSidebarText.textContent = 'Show Sidebar';
-            } else {
-                sidebar.classList.remove('sidebar-collapsed');
-                sidebar.removeAttribute('aria-hidden');
-                toggleSidebarText.textContent = 'Hide Sidebar';
-            }
-        });
-
-        // Fetch index
         fetch('book_index.json')
             .then(res => res.json())
             .then(data => {
                 fullIndex = data;
                 renderList();
                 
-                const lastReadId = localStorage.getItem('lastReadBookId');
-                const lastReadTitle = localStorage.getItem('lastReadBookTitle');
-                if (lastReadId && lastReadTitle) {
-                    setTimeout(() => {
-                        const btn = document.querySelector(`button[data-id="${lastReadId}"]`);
-                        if(btn) {
-                           btn.classList.add('bg-blue-50', 'dark:bg-blue-900/40', 'border-blue-200', 'dark:border-blue-800');
-                           btn.scrollIntoView({ behavior: "smooth", block: "center" });
-                        }
-                    }, 100);
-                    loadBook(lastReadId, lastReadTitle);
+                // URL Routing or Restore Last Read
+                const urlParams = new URLSearchParams(window.location.search);
+                let loadId = urlParams.get('book') || localStorage.getItem('lastReadBookId');
+                
+                if (loadId) {
+                    const foundBook = fullIndex.find(b => b.id == loadId);
+                    if(foundBook) {
+                        setTimeout(() => {
+                            const btn = document.querySelector(`button[data-id="${loadId}"]`);
+                            if(btn) {
+                               btn.classList.add('bg-blue-50', 'dark:bg-blue-900/40', 'border-blue-200', 'dark:border-blue-800');
+                               btn.scrollIntoView({ behavior: "smooth", block: "center" });
+                            }
+                        }, 100);
+                        loadBook(loadId, foundBook.title, false); // false to not push state again initially
+                    }
                 }
             })
             .catch(err => {
-                listEl.innerHTML = `<div class="p-4 text-red-500 text-center bg-red-50 dark:bg-red-900/20 rounded-lg m-4 border border-red-200 dark:border-red-800">
-                    <p class="font-bold">Failed to load index.</p>
-                    <p class="text-sm opacity-80 mt-1">${err.message}</p>
-                </div>`;
-                console.error(err);
+                listEl.innerHTML = `<div class="p-4 text-red-500">Failed to load index.</div>`;
             });
 
         function renderList() {
+            updateProgress();
             const term = searchInput.value.toLowerCase();
-            const requireDesc = filterDesc.checked;
+            const reqDesc = filterDesc.checked;
+            const reqFav = filterFav.checked;
+            const reqComp = filterComp.checked;
             
             const filtered = fullIndex.filter(book => {
-                const matchSearch = book.title.toLowerCase().includes(term);
-                const matchDesc = requireDesc ? book.has_desc : true;
-                return matchSearch && matchDesc;
+                const idStr = String(book.id);
+                if (reqDesc && !book.has_desc) return false;
+                if (reqFav && !favorites.includes(idStr)) return false;
+                if (reqComp && !completed.includes(idStr)) return false;
+                return book.title.toLowerCase().includes(term);
             });
 
             countEl.textContent = `${filtered.length} items`;
             listEl.innerHTML = '';
             
             if (filtered.length === 0) {
-                listEl.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-40 text-gray-500 dark:text-gray-400">
-                    <svg class="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <p>No books found.</p>
-                </div>`;
+                listEl.innerHTML = `<div class="p-8 text-center text-gray-400">No books found.</div>`;
                 return;
             }
 
             const fragment = document.createDocumentFragment();
-
             filtered.forEach(book => {
+                const idStr = String(book.id);
+                const isFav = favorites.includes(idStr);
+                const isComp = completed.includes(idStr);
+                
                 const btn = document.createElement('button');
                 btn.setAttribute('data-id', book.id);
-                btn.className = `w-full text-left p-3.5 rounded-xl transition-all duration-200 group flex flex-col focus:outline-none focus:ring-2 focus:ring-blue-500 border border-transparent
-                                 ${book.has_desc ? 'hover:bg-blue-50/80 dark:hover:bg-blue-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-700/50'}`;
+                btn.className = `w-full text-left p-3 rounded-xl transition-all mb-1 group flex flex-col focus:outline-none focus:ring-2 focus:ring-blue-500 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-700/50`;
                 
-                const titleClass = book.has_desc ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-600 dark:text-gray-400';
-                const badge = book.has_desc 
-                    ? `<span class="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-md bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 shrink-0 border border-green-200 dark:border-green-800/50 shadow-sm">Desc</span>` 
-                    : `<span class="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-md bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 shrink-0 border border-gray-200 dark:border-gray-600 shadow-sm">No Desc</span>`;
+                const badges = [];
+                if(book.has_desc) badges.push(`<span class="px-2 py-0.5 text-[10px] rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">Desc</span>`);
+                if(isFav) badges.push(`<span class="px-1 py-0.5 text-[10px] text-yellow-500">⭐</span>`);
+                if(isComp) badges.push(`<span class="px-1 py-0.5 text-[10px] text-green-500">✅</span>`);
 
                 btn.innerHTML = `
-                    <div class="flex justify-between items-start gap-3 w-full">
-                        <span class="${titleClass} line-clamp-2 leading-snug">${book.title}</span>
-                        ${badge}
+                    <div class="flex justify-between items-start gap-2 w-full">
+                        <span class="text-gray-800 dark:text-gray-200 font-medium line-clamp-2 leading-snug">${book.title}</span>
+                        <div class="flex items-center shrink-0">${badges.join('')}</div>
                     </div>
                 `;
                 
                 btn.onclick = () => {
-                    document.querySelectorAll('#list button').forEach(b => {
-                        b.classList.remove('bg-blue-50', 'dark:bg-blue-900/40', 'border-blue-200', 'dark:border-blue-800');
-                    });
+                    document.querySelectorAll('#list button').forEach(b => b.classList.remove('bg-blue-50', 'dark:bg-blue-900/40', 'border-blue-200', 'dark:border-blue-800'));
                     btn.classList.add('bg-blue-50', 'dark:bg-blue-900/40', 'border-blue-200', 'dark:border-blue-800');
-                    loadBook(book.id, book.title);
+                    loadBook(book.id, book.title, true);
                 };
                 fragment.appendChild(btn);
             });
-            
             listEl.appendChild(fragment);
         }
 
         let debounceTimer;
-        searchInput.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(renderList, 200);
-        });
-        filterDesc.addEventListener('change', renderList);
+        searchInput.oninput = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(renderList, 200); };
+        filterDesc.onchange = renderList;
+        filterFav.onchange = renderList;
+        filterComp.onchange = renderList;
 
-        // Mobile back button
-        backBtn.addEventListener('click', () => {
-            mainContent.classList.add('translate-x-full');
-            sidebar.classList.remove('-translate-x-full');
-        });
-
-        function loadBook(id, title) {
+        // --- Load Book Data ---
+        function loadBook(id, title, updateUrl = true) {
+            id = String(id);
             localStorage.setItem('lastReadBookId', id);
-            localStorage.setItem('lastReadBookTitle', title);
             
+            if (updateUrl) {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('book', id);
+                window.history.pushState({ path: newUrl.href }, '', newUrl.href);
+            }
+
             if (window.innerWidth < 768) {
                 mainContent.classList.remove('translate-x-full');
                 sidebar.classList.add('-translate-x-full');
             }
-            mobileTitle.textContent = title;
+            document.getElementById('mobile-title').textContent = title;
 
-            viewEl.innerHTML = `
-                <div class="flex flex-col justify-center items-center h-64 text-blue-500">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-blue-500 mb-4"></div>
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400 animate-pulse">Loading book data...</span>
-                </div>
-            `;
+            viewEl.innerHTML = `<div class="flex flex-col justify-center items-center h-64 text-blue-500"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-blue-500 mb-4"></div></div>`;
             
             fetch(`book_jsons/${id}.json`)
                 .then(res => {
@@ -310,108 +349,153 @@
                     const writer = data.book_writer && data.book_writer !== "null" ? data.book_writer : 'Unknown Writer';
                     const translator = data.book_translator && data.book_translator !== "null" ? data.book_translator : '';
                     
-                    // PDF Link
                     let pdfLink = '';
                     if (data.book_pdf && data.book_pdf !== "null" && data.book_pdf !== "") {
-                        pdfLink = `<a href="${data.book_pdf}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 rounded-lg text-sm font-semibold transition-all border border-red-200 dark:border-red-800/50 shadow-sm hover:shadow">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path></svg>
-                            View / Download PDF
-                        </a>`;
+                        pdfLink = `<a href="${data.book_pdf}" target="_blank" class="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 rounded-lg text-sm font-semibold transition border border-red-200 dark:border-red-800/50 inline-block">📄 View PDF</a>`;
                     }
 
-                    // Audio Link (Check both book_audio and book_audio_hq)
+                    // Audio
                     let audioSection = '';
-                    const audioUrl = (data.book_audio_hq && data.book_audio_hq !== "null") ? data.book_audio_hq 
-                                   : (data.book_audio && data.book_audio !== "null") ? data.book_audio : null;
-                    
+                    const audioUrl = (data.book_audio_hq && data.book_audio_hq !== "null") ? data.book_audio_hq : (data.book_audio && data.book_audio !== "null") ? data.book_audio : null;
                     if (audioUrl) {
                         audioSection = `
-                        <div class="mt-6 mb-8 p-5 bg-indigo-50/95 dark:bg-indigo-900/90 border border-indigo-200 dark:border-indigo-800/50 rounded-xl shadow-lg sticky top-4 z-40 backdrop-blur-sm transition-shadow">
-                            <h4 class="text-lg font-bold text-indigo-900 dark:text-indigo-300 mb-3 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-                                Audiobook Available
-                            </h4>
-                            <audio controls class="w-full mb-3 rounded-lg outline-none" preload="metadata">
-                                <source src="${audioUrl}" type="audio/mpeg">
-                                Your browser does not support the audio element.
-                            </audio>
-                            <a href="${audioUrl}" target="_blank" download class="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                Download Audio File
-                            </a>
+                        <div class="my-6 p-4 bg-indigo-50/95 dark:bg-indigo-900/90 border border-indigo-200 dark:border-indigo-800/50 rounded-xl shadow-lg sticky top-4 z-40 backdrop-blur-sm">
+                            <h4 class="text-sm font-bold text-indigo-900 dark:text-indigo-300 mb-2">🎧 Audiobook Available</h4>
+                            <audio controls class="w-full h-10 rounded-lg" preload="metadata"><source src="${audioUrl}" type="audio/mpeg"></audio>
+                            <a href="${audioUrl}" target="_blank" download class="block mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Download MP3</a>
                         </div>`;
                     }
 
-                    // Cover Image
                     let coverImage = '';
                     if (data.book_image && data.book_image !== "null" && data.book_image !== "") {
-                        coverImage = `<div class="float-right ml-6 mb-6 mt-2 relative group perspective">
-                            <div class="absolute inset-0 bg-black/20 rounded-lg transform translate-x-1 translate-y-1 blur-sm group-hover:translate-x-2 group-hover:translate-y-2 transition-transform"></div>
-                            <img src="${data.book_image}" onerror="this.style.display='none'; this.previousElementSibling.style.display='none'" class="w-28 md:w-36 h-auto object-cover rounded-lg shadow-lg relative z-10 border border-gray-200 dark:border-gray-700 transition-transform group-hover:-translate-y-1" alt="Cover">
-                        </div>`;
+                        coverImage = `<img src="${data.book_image}" onerror="this.style.display='none'" class="w-24 md:w-32 h-auto object-cover rounded-lg shadow float-right ml-4 mb-4" alt="Cover">`;
                     }
 
-                    // Description
                     const description = data.book_description && data.book_description !== "null" && data.book_description.trim() !== "" 
-                        ? `<div class="prose prose-blue dark:prose-invert prose-lg max-w-none description-content text-gray-700 dark:text-gray-300 leading-relaxed">${data.book_description}</div>`
-                        : `<div class="p-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">
-                            <svg class="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <p class="font-medium">No description available</p>
-                            <p class="text-sm mt-1 opacity-75">There is no description provided for this book.</p>
-                           </div>`;
+                        ? `<div class="prose prose-blue dark:prose-invert max-w-none description-content text-gray-700 dark:text-gray-300 leading-relaxed">${data.book_description}</div>`
+                        : `<div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-center text-gray-500 italic">No description available.</div>`;
+
+                    // Action Buttons State
+                    const isFav = favorites.includes(id);
+                    const isComp = completed.includes(id);
+                    const savedNote = localStorage.getItem(`note_${id}`) || '';
 
                     viewEl.innerHTML = `
-                        <article class="animate-fade-in-up">
-                            <div class="mb-8 min-h-[160px]">
+                        <article class="animate-fade-in-up pb-20">
+                            <div class="mb-6">
                                 ${coverImage}
-                                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-5 leading-tight tracking-tight">${data.book_title || title}</h1>
+                                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">${data.book_title || title}</h1>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm mb-4"><strong>Writer:</strong> ${writer} ${translator ? `| <strong>Translator:</strong> ${translator}` : ''}</p>
                                 
-                                <div class="flex flex-wrap gap-x-6 gap-y-3 text-sm md:text-base text-gray-600 dark:text-gray-400 mb-6 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700 inline-flex items-center">
-                                    <div class="flex items-center gap-2">
-                                        <div class="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                        </div>
-                                        <span class="font-medium text-gray-800 dark:text-gray-200">${writer}</span>
-                                    </div>
-                                    ${translator ? `
-                                    <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 hidden sm:block"></div>
-                                    <div class="flex items-center gap-2">
-                                        <div class="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-md">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
-                                        </div>
-                                        <span class="font-medium text-gray-800 dark:text-gray-200">${translator}</span>
-                                    </div>` : ''}
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    <button id="btn-fav" class="px-4 py-2 rounded-lg text-sm font-semibold transition border ${isFav ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}">
+                                        ${isFav ? '⭐ Favorited' : '☆ Add to Favorites'}
+                                    </button>
+                                    <button id="btn-comp" class="px-4 py-2 rounded-lg text-sm font-semibold transition border ${isComp ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}">
+                                        ${isComp ? '✅ Completed' : 'Mark as Read'}
+                                    </button>
+                                    ${pdfLink}
                                 </div>
-                                
                                 <div class="clear-none"></div>
-                                ${pdfLink ? `<div class="mt-2 mb-4">${pdfLink}</div>` : ''}
                             </div>
                             
                             ${audioSection}
+                            <hr class="border-gray-200 dark:border-gray-700 my-6">
+                            
+                            <div class="mt-4">
+                                ${description}
+                            </div>
                             
                             <hr class="border-gray-200 dark:border-gray-700 my-8">
                             
-                            <div class="mt-8">
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-                                    Description
-                                </h3>
-                                ${description}
+                            <div class="mt-8 bg-yellow-50 dark:bg-yellow-900/10 p-4 md:p-6 rounded-2xl border border-yellow-200 dark:border-yellow-800/30">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">📝 Personal Notes</h3>
+                                <textarea id="book-notes" rows="4" class="w-full p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm reader-sans text-gray-800 dark:text-gray-200 resize-y" placeholder="Type your notes here... They will be saved automatically to your browser.">${savedNote}</textarea>
+                                <p class="text-xs text-gray-500 mt-2 text-right" id="note-status">Saved locally.</p>
                             </div>
                         </article>
                     `;
+
+                    // Bind Actions
+                    document.getElementById('btn-fav').onclick = (e) => {
+                        const idx = favorites.indexOf(id);
+                        if(idx > -1) favorites.splice(idx, 1);
+                        else favorites.push(id);
+                        localStorage.setItem('favorites', JSON.stringify(favorites));
+                        renderList();
+                        loadBook(id, title, false); // re-render UI
+                    };
+                    
+                    document.getElementById('btn-comp').onclick = (e) => {
+                        const idx = completed.indexOf(id);
+                        if(idx > -1) completed.splice(idx, 1);
+                        else completed.push(id);
+                        localStorage.setItem('completed', JSON.stringify(completed));
+                        renderList();
+                        loadBook(id, title, false); // re-render UI
+                    };
+
+                    const noteArea = document.getElementById('book-notes');
+                    const noteStatus = document.getElementById('note-status');
+                    let saveTimeout;
+                    noteArea.oninput = () => {
+                        noteStatus.textContent = 'Saving...';
+                        clearTimeout(saveTimeout);
+                        saveTimeout = setTimeout(() => {
+                            localStorage.setItem(`note_${id}`, noteArea.value);
+                            noteStatus.textContent = 'Saved locally.';
+                        }, 500);
+                    };
                 })
                 .catch(err => {
-                    viewEl.innerHTML = `
-                        <div class="p-8 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl text-center border border-red-200 dark:border-red-800 shadow-sm max-w-lg mx-auto mt-10">
-                            <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <p class="font-bold text-lg mb-2">Error loading book data</p>
-                            <p class="text-sm opacity-80">${err.message}</p>
-                            <button onclick="loadBook('${id}', '${title}')" class="mt-6 px-4 py-2 bg-red-100 dark:bg-red-900/50 hover:bg-red-200 dark:hover:bg-red-900 text-red-700 dark:text-red-300 rounded-lg transition font-medium text-sm">Try Again</button>
-                        </div>
-                    `;
+                    viewEl.innerHTML = `<div class="p-6 bg-red-50 text-red-600 rounded-xl text-center shadow-sm">Error: ${err.message}</div>`;
                 });
         }
+
+        // --- Export Notes Logic ---
+        document.getElementById('export-notes-btn').onclick = () => {
+            let exportData = "Member Syllabus Notes Export\n============================\n\n";
+            let hasNotes = false;
+            
+            // Loop through localStorage
+            for(let i=0; i<localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if(key.startsWith('note_')) {
+                    const id = key.replace('note_', '');
+                    const noteContent = localStorage.getItem(key).trim();
+                    if(noteContent) {
+                        hasNotes = true;
+                        // Find book title from index
+                        const book = fullIndex.find(b => b.id == id);
+                        const title = book ? book.title : `Book ID: ${id}`;
+                        exportData += `--- ${title} ---\n${noteContent}\n\n`;
+                    }
+                }
+            }
+
+            if(!hasNotes) {
+                alert("You don't have any notes saved yet!");
+                return;
+            }
+
+            const blob = new Blob([exportData], { type: "text/plain;charset=utf-8" });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "syllabus_notes.txt";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+        
+        // Handle Back/Forward browser buttons
+        window.addEventListener('popstate', (event) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookId = urlParams.get('book');
+            if(bookId && fullIndex.length > 0) {
+                const b = fullIndex.find(x => x.id == bookId);
+                if(b) loadBook(b.id, b.title, false);
+            }
+        });
     </script>
 </body>
 </html>
