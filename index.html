@@ -53,6 +53,14 @@
         .animate-fade-in-up {
             animation: fadeInUp 0.4s ease-out forwards;
         }
+
+        /* Sidebar Transition for Desktop */
+        #sidebar {
+            transition: margin-left 0.3s ease-in-out;
+        }
+        .sidebar-collapsed {
+            margin-left: -24rem; /* Matches md:w-96 */
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 flex h-screen overflow-hidden transition-colors duration-200">
@@ -94,16 +102,25 @@
 
     <!-- Main Content -->
     <main id="main-content" class="flex-1 flex flex-col h-full bg-gray-50 dark:bg-gray-900 w-full absolute md:relative z-20 md:z-auto transition-transform duration-300 transform translate-x-full md:translate-x-0">
-        <!-- Top bar for mobile -->
-        <div class="md:hidden p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center shadow-sm sticky top-0 z-10">
-            <button id="back-btn" class="mr-3 p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <!-- Top bar (Visible on Mobile, Optional on Desktop for toggling sidebar) -->
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center shadow-sm sticky top-0 z-10">
+            <!-- Mobile Back Button -->
+            <button id="back-btn" class="md:hidden mr-3 p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </button>
-            <span class="font-semibold truncate text-gray-800 dark:text-gray-200" id="mobile-title">Book Details</span>
+            
+            <!-- Desktop Toggle Sidebar Button -->
+            <button id="toggle-sidebar-btn" class="hidden md:flex items-center gap-2 mr-3 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                <span id="toggle-sidebar-text">Hide Sidebar (for TTS)</span>
+            </button>
+            
+            <span class="font-semibold truncate text-gray-800 dark:text-gray-200 ml-2" id="mobile-title">Book Details</span>
         </div>
         
         <div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-            <div id="viewer-area" class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-10 min-h-full transition-all duration-300">
+            <!-- Added id="book-content" and aria-label for TTS optimization -->
+            <div id="viewer-area" aria-label="Main Book Content" class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-10 min-h-full transition-all duration-300">
                 <div class="flex flex-col items-center justify-center h-[60vh] text-gray-400 dark:text-gray-500 space-y-4">
                     <svg class="w-24 h-24 opacity-20" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
                     <p class="text-xl font-medium">Select a book to read its details</p>
@@ -126,6 +143,11 @@
         const mainContent = document.getElementById('main-content');
         const backBtn = document.getElementById('back-btn');
         const mobileTitle = document.getElementById('mobile-title');
+        
+        // Desktop sidebar toggle
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+        const toggleSidebarText = document.getElementById('toggle-sidebar-text');
+        let isSidebarCollapsed = false;
 
         // Theme Setup
         const themeToggle = document.getElementById('theme-toggle');
@@ -142,7 +164,6 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         }
         
-        // Init theme
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             setTheme(true);
         } else {
@@ -151,6 +172,20 @@
 
         themeToggle.addEventListener('click', () => {
             setTheme(!document.documentElement.classList.contains('dark'));
+        });
+
+        // Desktop Sidebar Toggle Logic
+        toggleSidebarBtn.addEventListener('click', () => {
+            isSidebarCollapsed = !isSidebarCollapsed;
+            if (isSidebarCollapsed) {
+                sidebar.classList.add('sidebar-collapsed');
+                sidebar.setAttribute('aria-hidden', 'true');
+                toggleSidebarText.textContent = 'Show Sidebar';
+            } else {
+                sidebar.classList.remove('sidebar-collapsed');
+                sidebar.removeAttribute('aria-hidden');
+                toggleSidebarText.textContent = 'Hide Sidebar (for TTS)';
+            }
         });
 
         // Fetch index
@@ -190,7 +225,6 @@
                 return;
             }
 
-            // Document fragment for better performance
             const fragment = document.createDocumentFragment();
 
             filtered.forEach(book => {
@@ -211,7 +245,6 @@
                 `;
                 
                 btn.onclick = () => {
-                    // Update active state
                     document.querySelectorAll('#list button').forEach(b => {
                         b.classList.remove('bg-blue-50', 'dark:bg-blue-900/40', 'border-blue-200', 'dark:border-blue-800');
                     });
@@ -224,7 +257,6 @@
             listEl.appendChild(fragment);
         }
 
-        // Search & Filter listeners
         let debounceTimer;
         searchInput.addEventListener('input', () => {
             clearTimeout(debounceTimer);
@@ -239,7 +271,6 @@
         });
 
         function loadBook(id, title) {
-            // Mobile navigation transition
             if (window.innerWidth < 768) {
                 mainContent.classList.remove('translate-x-full');
                 sidebar.classList.add('-translate-x-full');
@@ -262,6 +293,7 @@
                     const writer = data.book_writer && data.book_writer !== "null" ? data.book_writer : 'Unknown Writer';
                     const translator = data.book_translator && data.book_translator !== "null" ? data.book_translator : '';
                     
+                    // PDF Link
                     let pdfLink = '';
                     if (data.book_pdf && data.book_pdf !== "null" && data.book_pdf !== "") {
                         pdfLink = `<a href="${data.book_pdf}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 rounded-lg text-sm font-semibold transition-all border border-red-200 dark:border-red-800/50 shadow-sm hover:shadow">
@@ -270,6 +302,30 @@
                         </a>`;
                     }
 
+                    // Audio Link (Check both book_audio and book_audio_hq)
+                    let audioSection = '';
+                    const audioUrl = (data.book_audio_hq && data.book_audio_hq !== "null") ? data.book_audio_hq 
+                                   : (data.book_audio && data.book_audio !== "null") ? data.book_audio : null;
+                    
+                    if (audioUrl) {
+                        audioSection = `
+                        <div class="mt-6 mb-8 p-5 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl shadow-sm">
+                            <h4 class="text-lg font-bold text-indigo-900 dark:text-indigo-300 mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                                Audiobook Available
+                            </h4>
+                            <audio controls class="w-full mb-3 rounded-lg outline-none" preload="metadata">
+                                <source src="${audioUrl}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <a href="${audioUrl}" target="_blank" download class="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Download Audio File
+                            </a>
+                        </div>`;
+                    }
+
+                    // Cover Image
                     let coverImage = '';
                     if (data.book_image && data.book_image !== "null" && data.book_image !== "") {
                         coverImage = `<div class="float-right ml-6 mb-6 mt-2 relative group perspective">
@@ -278,6 +334,7 @@
                         </div>`;
                     }
 
+                    // Description
                     const description = data.book_description && data.book_description !== "null" && data.book_description.trim() !== "" 
                         ? `<div class="prose prose-blue dark:prose-invert prose-lg max-w-none description-content text-gray-700 dark:text-gray-300 leading-relaxed">${data.book_description}</div>`
                         : `<div class="p-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">
@@ -310,8 +367,10 @@
                                 </div>
                                 
                                 <div class="clear-none"></div>
-                                ${pdfLink ? `<div class="mt-2 mb-8">${pdfLink}</div>` : ''}
+                                ${pdfLink ? `<div class="mt-2 mb-4">${pdfLink}</div>` : ''}
                             </div>
+                            
+                            ${audioSection}
                             
                             <hr class="border-gray-200 dark:border-gray-700 my-8">
                             
