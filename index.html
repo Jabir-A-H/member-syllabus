@@ -147,8 +147,8 @@
             </div>
         </div>
         
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative">
-            <div id="viewer-area" aria-label="Main Book Content" class="reader-base reader-sans max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-10 min-h-full transition-all duration-300">
+        <div class="flex-1 overflow-y-auto p-0 md:p-6 lg:p-8 relative">
+            <div id="viewer-area" aria-label="Main Book Content" class="reader-base reader-sans max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-none md:rounded-2xl shadow-none md:shadow-sm border-0 md:border md:border-gray-200 dark:md:border-gray-700 p-4 md:p-10 min-h-full transition-all duration-300">
                 <div class="flex flex-col items-center justify-center h-[60vh] text-gray-400">
                     <svg class="w-24 h-24 opacity-20" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
                     <p class="text-xl font-medium mt-4">Select a book to read its details</p>
@@ -158,12 +158,12 @@
     </main>
 
     <!-- Floating Notes Toggle -->
-    <button id="floating-notes-btn" class="fixed bottom-20 md:bottom-6 right-6 z-50 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 p-3 rounded-full shadow-lg transition-transform hover:scale-105 hidden" title="Take Notes">
+    <button id="floating-notes-btn" class="fixed bottom-6 right-6 z-50 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 p-3 rounded-full shadow-lg transition-transform hover:scale-105 hidden" title="Take Notes">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
     </button>
 
     <!-- Floating Notes Panel -->
-    <div id="floating-notes-panel" class="fixed bottom-36 md:bottom-24 right-6 z-50 w-80 md:w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none flex flex-col hidden">
+    <div id="floating-notes-panel" class="fixed bottom-24 right-6 z-50 w-80 md:w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none flex flex-col hidden">
         <div class="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-yellow-50 dark:bg-yellow-900/10 rounded-t-2xl">
             <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">📝 Personal Notes</h3>
             <button id="close-notes-btn" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -175,7 +175,7 @@
     </div>
 
     <!-- Floating Audio Player -->
-    <div id="floating-audio-panel" class="fixed bottom-20 md:bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-300 translate-y-20 opacity-0 pointer-events-none flex flex-col hidden p-3">
+    <div id="floating-audio-panel" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-300 translate-y-20 opacity-0 pointer-events-none flex flex-col hidden p-3">
         <div class="flex justify-between items-center mb-2 px-1">
             <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">🎧 Now Playing</h3>
             <button id="close-audio-btn" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
