@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic Book Viewer</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; display: flex; height: 100vh; margin: 0; background: #f0f2f5; }
+        #sidebar { width: 350px; border-right: 1px solid #ccc; overflow-y: auto; background: white; padding: 20px; }
+        #content { flex: 1; padding: 40px; overflow-y: auto; background: #fff; }
+        .book-item { cursor: pointer; padding: 10px; border-bottom: 1px solid #eee; transition: 0.2s; }
+        .book-item:hover { background: #f0f7ff; }
+        .no-desc { color: #999; font-style: italic; }
+        .has-desc { color: #2c3e50; font-weight: bold; }
+        .badge { font-size: 0.7em; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
+        .badge-green { background: #d4edda; color: #155724; }
+        .badge-gray { background: #e2e3e5; color: #383d41; }
+        #viewer-area { max-width: 800px; margin: auto; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Book Index</h2>
+        <input type="text" id="search" placeholder="Search titles..." style="width:100%; padding:8px; margin-bottom:15px;">
+        <div id="list">Loading index...</div>
+    </div>
+    <div id="content">
+        <div id="viewer-area">Select a book to load details dynamically.</div>
+    </div>
+
+    <script>
+        let fullIndex = [];
+        const listEl = document.getElementById('list');
+        const viewEl = document.getElementById('viewer-area');
+
+        // 1. Load the tiny index
+        fetch('book_index.json')
+            .then(res => res.json())
+            .then(data => {
+                fullIndex = data;
+                renderList(data);
+            });
+
+        function renderList(items) {
+            listEl.innerHTML = '';
+            items.forEach(book => {
+                const div = document.createElement('div');
+                div.className = 'book-item ' + (book.has_desc ? 'has-desc' : 'no-desc');
+                div.innerHTML = book.title + 
+                    `<span class="badge ${book.has_desc ? 'badge-green' : 'badge-gray'}">${book.has_desc ? 'Has Desc' : 'No Desc'}</span>`;
+                
+                div.onclick = () => loadBook(book.id);
+                listEl.appendChild(div);
+            });
+        }
+
+        // 2. Load individual JSON only when clicked
+        function loadBook(id) {
+            viewEl.innerHTML = 'Loading book data...';
+            fetch(`book_jsons/${id}.json`)
+                .then(res => res.json())
+                .then(data => {
+                    viewEl.innerHTML = `
+                        <h1>${data.book_title}</h1>
+                        <p><strong>Writer:</strong> ${data.book_writer} | <strong>Translator:</strong> ${data.book_translator || 'N/A'}</p>
+                        <hr>
+                        <div>${data.book_description || '<i style="color:red">No description available for this book.</i>'}</div>
+                    `;
+                });
+        }
+
+        document.getElementById('search').oninput = (e) => {
+            const term = e.target.value.toLowerCase();
+            renderList(fullIndex.filter(b => b.title.toLowerCase().includes(term)));
+        };
+    </script>
+</body>
+</html>
