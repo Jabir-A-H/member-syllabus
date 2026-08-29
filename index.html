@@ -460,7 +460,7 @@
                     const hasDesc = data.book_description && data.book_description !== "null" && data.book_description.trim() !== "";
                     
                     if (hasDesc) {
-                        descriptionHTML = `<div class="prose prose-blue dark:prose-invert max-w-none description-content text-gray-700 dark:text-gray-300 leading-relaxed">${data.book_description}</div>`;
+                        descriptionHTML = `<div class="prose prose-blue dark:prose-invert max-w-none description-content text-gray-700 dark:text-gray-300 leading-relaxed break-words">${data.book_description}</div>`;
                     } else {
                         descriptionHTML = `<div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-center text-gray-500 italic">No text description available.</div>`;
                     }
@@ -470,11 +470,11 @@
                     const savedNote = localStorage.getItem(`note_${id}`) || '';
 
                     viewEl.innerHTML = `
-                        <article class="animate-fade-in-up pb-20">
+                        <article class="animate-fade-in-up pb-20 overflow-x-hidden">
                             <div class="mb-6">
                                 ${coverImage}
-                                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">${data.book_title || title}</h1>
-                                <p class="text-gray-600 dark:text-gray-400 text-sm mb-4"><strong>Writer:</strong> ${writer} ${translator ? `| <strong>Translator:</strong> ${translator}` : ''}</p>
+                                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 break-words">${data.book_title || title}</h1>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 break-words"><strong>Writer:</strong> ${writer} ${translator ? `| <strong>Translator:</strong> ${translator}` : ''}</p>
                                 
                                 <div class="flex flex-wrap gap-2 mb-4">
                                     <button id="btn-comp" class="px-4 py-2 rounded-lg text-sm font-semibold transition border ${isComp ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}">
