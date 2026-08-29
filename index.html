@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Syllabus Viewer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569; 
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        .description-content img {
+            max-width: 100%;
+            height: auto;
+        }
+        .description-content p {
+            margin-bottom: 1em;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 flex h-screen overflow-hidden transition-colors duration-200">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-full md:w-80 lg:w-96 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col transition-all duration-300 z-10 absolute md:relative h-full">
+        <!-- Header & Controls -->
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 shadow-sm z-10">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-teal-400">Book Viewer</h2>
+                <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition" aria-label="Toggle Dark Mode">
+                    <!-- Sun/Moon icon set in JS -->
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <div class="relative">
+                <input type="text" id="search" placeholder="Search books..." class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-sm">
+                <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            
+            <div class="mt-3 flex items-center space-x-2 text-sm">
+                <label class="flex items-center space-x-2 cursor-pointer group">
+                    <input type="checkbox" id="filter-desc" class="rounded text-blue-500 focus:ring-blue-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 w-4 h-4 transition cursor-pointer">
+                    <span class="text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition">Has Description</span>
+                </label>
+                <span id="book-count" class="text-gray-500 dark:text-gray-400 ml-auto text-xs font-medium bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">0 items</span>
+            </div>
+        </div>
+
+        <!-- List -->
+        <div id="list" class="flex-1 overflow-y-auto p-2 space-y-1 bg-gray-50/50 dark:bg-gray-900/50">
+            <div class="p-4 text-center text-gray-500 flex flex-col items-center justify-center h-40">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-2"></div>
+                Loading index...
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content" class="flex-1 flex flex-col h-full bg-gray-50 dark:bg-gray-900 w-full absolute md:relative z-20 md:z-auto transition-transform duration-300 transform translate-x-full md:translate-x-0">
+        <!-- Top bar for mobile -->
+        <div class="md:hidden p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center shadow-sm sticky top-0 z-10">
+            <button id="back-btn" class="mr-3 p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </button>
+            <span class="font-semibold truncate text-gray-800 dark:text-gray-200" id="mobile-title">Book Details</span>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+            <div id="viewer-area" class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-10 min-h-full transition-all duration-300">
+                <div class="flex flex-col items-center justify-center h-[60vh] text-gray-400 dark:text-gray-500 space-y-4">
+                    <svg class="w-24 h-24 opacity-20" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
+                    <p class="text-xl font-medium">Select a book to read its details</p>
+                    <p class="text-sm opacity-75">Use the sidebar to search and browse the syllabus</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let fullIndex = [];
+        const listEl = document.getElementById('list');
+        const viewEl = document.getElementById('viewer-area');
+        const searchInput = document.getElementById('search');
+        const filterDesc = document.getElementById('filter-desc');
+        const countEl = document.getElementById('book-count');
+        
+        // Mobile navigation
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const backBtn = document.getElementById('back-btn');
+        const mobileTitle = document.getElementById('mobile-title');
+
+        // Theme Setup
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        
+        function setTheme(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                themeIcon.textContent = '☀️';
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeIcon.textContent = '🌙';
+            }
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+        
+        // Init theme
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            setTheme(true);
+        } else {
+            setTheme(false);
+        }
+
+        themeToggle.addEventListener('click', () => {
+            setTheme(!document.documentElement.classList.contains('dark'));
+        });
+
+        // Fetch index
+        fetch('book_index.json')
+            .then(res => res.json())
+            .then(data => {
+                fullIndex = data;
+                renderList();
+            })
+            .catch(err => {
+                listEl.innerHTML = `<div class="p-4 text-red-500 text-center bg-red-50 dark:bg-red-900/20 rounded-lg m-4 border border-red-200 dark:border-red-800">
+                    <p class="font-bold">Failed to load index.</p>
+                    <p class="text-sm opacity-80 mt-1">${err.message}</p>
+                </div>`;
+                console.error(err);
+            });
+
+        function renderList() {
+            const term = searchInput.value.toLowerCase();
+            const requireDesc = filterDesc.checked;
+            
+            const filtered = fullIndex.filter(book => {
+                const matchSearch = book.title.toLowerCase().includes(term);
+                const matchDesc = requireDesc ? book.has_desc : true;
+                return matchSearch && matchDesc;
+            });
+
+            countEl.textContent = `${filtered.length} items`;
+            listEl.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                listEl.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-40 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <p>No books found.</p>
+                </div>`;
+                return;
+            }
+
+            // Document fragment for better performance
+            const fragment = document.createDocumentFragment();
+
+            filtered.forEach(book => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-3.5 rounded-xl transition-all duration-200 group flex flex-col focus:outline-none focus:ring-2 focus:ring-blue-500 border border-transparent
+                                 ${book.has_desc ? 'hover:bg-blue-50/80 dark:hover:bg-blue-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-700/50'}`;
+                
+                const titleClass = book.has_desc ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-600 dark:text-gray-400';
+                const badge = book.has_desc 
+                    ? `<span class="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-md bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 shrink-0 border border-green-200 dark:border-green-800/50 shadow-sm">Desc</span>` 
+                    : `<span class="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-md bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 shrink-0 border border-gray-200 dark:border-gray-600 shadow-sm">No Desc</span>`;
+
+                btn.innerHTML = `
+                    <div class="flex justify-between items-start gap-3 w-full">
+                        <span class="${titleClass} line-clamp-2 leading-snug">${book.title}</span>
+                        ${badge}
+                    </div>
+                `;
+                
+                btn.onclick = () => {
+                    // Update active state
+                    document.querySelectorAll('#list button').forEach(b => {
+                        b.classList.remove('bg-blue-50', 'dark:bg-blue-900/40', 'border-blue-200', 'dark:border-blue-800');
+                    });
+                    btn.classList.add('bg-blue-50', 'dark:bg-blue-900/40', 'border-blue-200', 'dark:border-blue-800');
+                    loadBook(book.id, book.title);
+                };
+                fragment.appendChild(btn);
+            });
+            
+            listEl.appendChild(fragment);
+        }
+
+        // Search & Filter listeners
+        let debounceTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(renderList, 200);
+        });
+        filterDesc.addEventListener('change', renderList);
+
+        // Mobile back button
+        backBtn.addEventListener('click', () => {
+            mainContent.classList.add('translate-x-full');
+            sidebar.classList.remove('-translate-x-full');
+        });
+
+        function loadBook(id, title) {
+            // Mobile navigation transition
+            if (window.innerWidth < 768) {
+                mainContent.classList.remove('translate-x-full');
+                sidebar.classList.add('-translate-x-full');
+            }
+            mobileTitle.textContent = title;
+
+            viewEl.innerHTML = `
+                <div class="flex flex-col justify-center items-center h-64 text-blue-500">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-blue-500 mb-4"></div>
+                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400 animate-pulse">Loading book data...</span>
+                </div>
+            `;
+            
+            fetch(`book_jsons/${id}.json`)
+                .then(res => {
+                    if (!res.ok) throw new Error("File not found or network error");
+                    return res.json();
+                })
+                .then(data => {
+                    const writer = data.book_writer && data.book_writer !== "null" ? data.book_writer : 'Unknown Writer';
+                    const translator = data.book_translator && data.book_translator !== "null" ? data.book_translator : '';
+                    
+                    let pdfLink = '';
+                    if (data.book_pdf && data.book_pdf !== "null" && data.book_pdf !== "") {
+                        pdfLink = `<a href="${data.book_pdf}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 rounded-lg text-sm font-semibold transition-all border border-red-200 dark:border-red-800/50 shadow-sm hover:shadow">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path></svg>
+                            View / Download PDF
+                        </a>`;
+                    }
+
+                    let coverImage = '';
+                    if (data.book_image && data.book_image !== "null" && data.book_image !== "") {
+                        coverImage = `<div class="float-right ml-6 mb-6 mt-2 relative group perspective">
+                            <div class="absolute inset-0 bg-black/20 rounded-lg transform translate-x-1 translate-y-1 blur-sm group-hover:translate-x-2 group-hover:translate-y-2 transition-transform"></div>
+                            <img src="${data.book_image}" onerror="this.style.display='none'; this.previousElementSibling.style.display='none'" class="w-28 md:w-36 h-auto object-cover rounded-lg shadow-lg relative z-10 border border-gray-200 dark:border-gray-700 transition-transform group-hover:-translate-y-1" alt="Cover">
+                        </div>`;
+                    }
+
+                    const description = data.book_description && data.book_description !== "null" && data.book_description.trim() !== "" 
+                        ? `<div class="prose prose-blue dark:prose-invert prose-lg max-w-none description-content text-gray-700 dark:text-gray-300 leading-relaxed">${data.book_description}</div>`
+                        : `<div class="p-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">
+                            <svg class="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <p class="font-medium">No description available</p>
+                            <p class="text-sm mt-1 opacity-75">There is no description provided for this book.</p>
+                           </div>`;
+
+                    viewEl.innerHTML = `
+                        <article class="animate-fade-in-up">
+                            <div class="mb-8 min-h-[160px]">
+                                ${coverImage}
+                                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-5 leading-tight tracking-tight">${data.book_title || title}</h1>
+                                
+                                <div class="flex flex-wrap gap-x-6 gap-y-3 text-sm md:text-base text-gray-600 dark:text-gray-400 mb-6 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700 inline-flex items-center">
+                                    <div class="flex items-center gap-2">
+                                        <div class="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                        </div>
+                                        <span class="font-medium text-gray-800 dark:text-gray-200">${writer}</span>
+                                    </div>
+                                    ${translator ? `
+                                    <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 hidden sm:block"></div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-md">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
+                                        </div>
+                                        <span class="font-medium text-gray-800 dark:text-gray-200">${translator}</span>
+                                    </div>` : ''}
+                                </div>
+                                
+                                <div class="clear-none"></div>
+                                ${pdfLink ? `<div class="mt-2 mb-8">${pdfLink}</div>` : ''}
+                            </div>
+                            
+                            <hr class="border-gray-200 dark:border-gray-700 my-8">
+                            
+                            <div class="mt-8">
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                                    Description
+                                </h3>
+                                ${description}
+                            </div>
+                        </article>
+                    `;
+                })
+                .catch(err => {
+                    viewEl.innerHTML = `
+                        <div class="p-8 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl text-center border border-red-200 dark:border-red-800 shadow-sm max-w-lg mx-auto mt-10">
+                            <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <p class="font-bold text-lg mb-2">Error loading book data</p>
+                            <p class="text-sm opacity-80">${err.message}</p>
+                            <button onclick="loadBook('${id}', '${title}')" class="mt-6 px-4 py-2 bg-red-100 dark:bg-red-900/50 hover:bg-red-200 dark:hover:bg-red-900 text-red-700 dark:text-red-300 rounded-lg transition font-medium text-sm">Try Again</button>
+                        </div>
+                    `;
+                });
+        }
+    </script>
+</body>
+</html>
