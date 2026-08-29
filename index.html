@@ -232,8 +232,11 @@
             progressText.textContent = `${completed.length} / ${fullIndex.length} (${percentage}%)`;
         }
 
-        fetch('book_index.json')
-            .then(res => res.json())
+        fetch('/book_index.json')
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                return res.json();
+            })
             .then(data => {
                 fullIndex = data;
                 renderList();
@@ -257,7 +260,8 @@
                 }
             })
             .catch(err => {
-                listEl.innerHTML = `<div class="p-4 text-red-500">Failed to load index.</div>`;
+                listEl.innerHTML = `<div class="p-4 text-red-500 text-sm">Failed to load index:<br>${err.message}</div>`;
+                console.error("Index load error:", err);
             });
 
         function renderList() {
@@ -340,7 +344,7 @@
 
             viewEl.innerHTML = `<div class="flex flex-col justify-center items-center h-64 text-blue-500"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-blue-500 mb-4"></div></div>`;
             
-            fetch(`book_jsons/${id}.json`)
+            fetch(`/book_jsons/${id}.json`)
                 .then(res => {
                     if (!res.ok) throw new Error("File not found or network error");
                     return res.json();
