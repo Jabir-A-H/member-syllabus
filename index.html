@@ -89,14 +89,14 @@
                 <svg class="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
             
-            <div class="flex flex-wrap gap-2 text-xs">
+            <div class="flex flex-wrap gap-2 text-xs mt-3">
                 <label class="flex items-center space-x-1 cursor-pointer">
                     <input type="checkbox" id="filter-desc" class="rounded text-blue-500">
-                    <span class="text-gray-600 dark:text-gray-300">Has Desc</span>
+                    <span class="text-gray-600 dark:text-gray-300">📄 Text</span>
                 </label>
                 <label class="flex items-center space-x-1 cursor-pointer">
-                    <input type="checkbox" id="filter-fav" class="rounded text-yellow-500">
-                    <span class="text-gray-600 dark:text-gray-300 flex items-center gap-1"><svg class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg> Favs</span>
+                    <input type="checkbox" id="filter-audio" class="rounded text-indigo-500">
+                    <span class="text-gray-600 dark:text-gray-300">🎧 Audio</span>
                 </label>
                 <label class="flex items-center space-x-1 cursor-pointer">
                     <input type="checkbox" id="filter-comp" class="rounded text-green-500">
@@ -144,7 +144,6 @@
             <div class="flex items-center gap-1 sm:gap-2">
                 <button id="font-decrease" class="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Decrease Font">A-</button>
                 <button id="font-increase" class="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold" title="Increase Font">A+</button>
-                <button id="font-toggle" class="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium border border-gray-200 dark:border-gray-700 ml-1">Serif</button>
             </div>
         </div>
         
@@ -194,18 +193,16 @@
 
         // --- State Management ---
         let fullIndex = [];
-        let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         let completed = JSON.parse(localStorage.getItem('completed') || '[]');
         let fontSizes = ['reader-sm', 'reader-base', 'reader-lg', 'reader-xl', 'reader-2xl'];
         let currentFontIndex = parseInt(localStorage.getItem('fontIndex') || '1');
-        let isSerif = localStorage.getItem('isSerif') === 'true';
 
         // --- DOM Elements ---
         const listEl = document.getElementById('list');
         const viewEl = document.getElementById('viewer-area');
         const searchInput = document.getElementById('search');
         const filterDesc = document.getElementById('filter-desc');
-        const filterFav = document.getElementById('filter-fav');
+        const filterAudio = document.getElementById('filter-audio');
         const filterComp = document.getElementById('filter-comp');
         const countEl = document.getElementById('book-count');
         const progressBar = document.getElementById('progress-bar');
@@ -269,18 +266,14 @@
 
         // --- Typography Settings ---
         function applyTypography() {
-            viewEl.classList.remove(...fontSizes, 'reader-sans', 'reader-serif');
+            viewEl.classList.remove(...fontSizes);
             viewEl.classList.add(fontSizes[currentFontIndex]);
-            viewEl.classList.add(isSerif ? 'reader-serif' : 'reader-sans');
-            document.getElementById('font-toggle').textContent = isSerif ? 'Sans' : 'Serif';
             
             localStorage.setItem('fontIndex', currentFontIndex);
-            localStorage.setItem('isSerif', isSerif);
         }
         
         document.getElementById('font-increase').onclick = () => { if(currentFontIndex < fontSizes.length-1) { currentFontIndex++; applyTypography(); } };
         document.getElementById('font-decrease').onclick = () => { if(currentFontIndex > 0) { currentFontIndex--; applyTypography(); } };
-        document.getElementById('font-toggle').onclick = () => { isSerif = !isSerif; applyTypography(); };
         applyTypography(); // Apply on load
 
         // --- Sidebar Toggles ---
@@ -340,13 +333,13 @@
             updateProgress();
             const term = searchInput.value.toLowerCase();
             const reqDesc = filterDesc.checked;
-            const reqFav = filterFav.checked;
+            const reqAudio = filterAudio.checked;
             const reqComp = filterComp.checked;
             
             const filtered = fullIndex.filter(book => {
                 const idStr = String(book.id);
                 if (reqDesc && !book.has_desc) return false;
-                if (reqFav && !favorites.includes(idStr)) return false;
+                if (reqAudio && !book.has_audio) return false;
                 if (reqComp && !completed.includes(idStr)) return false;
                 return book.title.toLowerCase().includes(term);
             });
@@ -362,7 +355,6 @@
             const fragment = document.createDocumentFragment();
             filtered.forEach(book => {
                 const idStr = String(book.id);
-                const isFav = favorites.includes(idStr);
                 const isComp = completed.includes(idStr);
                 
                 const btn = document.createElement('button');
@@ -370,9 +362,9 @@
                 btn.className = `w-full text-left p-3 rounded-xl transition-all mb-1 group flex flex-col focus:outline-none focus:ring-2 focus:ring-blue-500 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-700/50`;
                 
                 const badges = [];
-                if(book.has_desc) badges.push(`<span class="px-2 py-0.5 text-[10px] rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">Desc</span>`);
-                if(isFav) badges.push(`<span class="px-1 py-0.5 text-[10px] text-yellow-500">⭐</span>`);
-                if(isComp) badges.push(`<span class="px-1 py-0.5 text-[10px] text-green-500">✅</span>`);
+                if(book.has_desc) badges.push(`<span class="px-2 py-0.5 text-[10px] rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300" title="Has Text">📄</span>`);
+                if(book.has_audio) badges.push(`<span class="px-2 py-0.5 text-[10px] rounded-md bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400" title="Audiobook">🎧</span>`);
+                if(isComp) badges.push(`<span class="px-1 py-0.5 text-[10px] text-green-500" title="Completed">✅</span>`);
 
                 btn.innerHTML = `
                     <div class="flex justify-between items-start gap-2 w-full">
@@ -394,7 +386,7 @@
         let debounceTimer;
         searchInput.oninput = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(renderList, 200); };
         filterDesc.onchange = renderList;
-        filterFav.onchange = renderList;
+        filterAudio.onchange = renderList;
         filterComp.onchange = renderList;
 
         // --- Load Book Data ---
@@ -456,7 +448,6 @@
                         : `<div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-center text-gray-500 italic">No description available.</div>`;
 
                     // Action Buttons State
-                    const isFav = favorites.includes(id);
                     const isComp = completed.includes(id);
                     const savedNote = localStorage.getItem(`note_${id}`) || '';
 
@@ -468,9 +459,6 @@
                                 <p class="text-gray-600 dark:text-gray-400 text-sm mb-4"><strong>Writer:</strong> ${writer} ${translator ? `| <strong>Translator:</strong> ${translator}` : ''}</p>
                                 
                                 <div class="flex flex-wrap gap-2 mb-4">
-                                    <button id="btn-fav" class="px-4 py-2 rounded-lg text-sm font-semibold transition border ${isFav ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}">
-                                        ${isFav ? '⭐ Favorited' : '☆ Add to Favorites'}
-                                    </button>
                                     <button id="btn-comp" class="px-4 py-2 rounded-lg text-sm font-semibold transition border ${isComp ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}">
                                         ${isComp ? '✅ Completed' : 'Mark as Read'}
                                     </button>
@@ -490,15 +478,6 @@
                     `;
 
                     // Bind Actions
-                    document.getElementById('btn-fav').onclick = (e) => {
-                        const idx = favorites.indexOf(id);
-                        if(idx > -1) favorites.splice(idx, 1);
-                        else favorites.push(id);
-                        localStorage.setItem('favorites', JSON.stringify(favorites));
-                        renderList();
-                        loadBook(id, title, false); // re-render UI
-                    };
-                    
                     document.getElementById('btn-comp').onclick = (e) => {
                         const idx = completed.indexOf(id);
                         if(idx > -1) completed.splice(idx, 1);
