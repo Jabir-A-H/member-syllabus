@@ -158,6 +158,23 @@
         </div>
     </main>
 
+    <!-- Floating Notes Toggle -->
+    <button id="floating-notes-btn" class="fixed bottom-6 right-6 z-50 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 p-3 rounded-full shadow-lg transition-transform hover:scale-105 hidden" title="Take Notes">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+    </button>
+
+    <!-- Floating Notes Panel -->
+    <div id="floating-notes-panel" class="fixed bottom-24 right-6 z-50 w-80 md:w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none flex flex-col hidden">
+        <div class="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-yellow-50 dark:bg-yellow-900/10 rounded-t-2xl">
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">📝 Personal Notes</h3>
+            <button id="close-notes-btn" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        </div>
+        <div class="p-3">
+            <textarea id="floating-book-notes" rows="6" class="w-full p-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm reader-sans text-gray-800 dark:text-gray-200 resize-none" placeholder="Type your notes here..."></textarea>
+            <p class="text-xs text-gray-500 mt-2 text-right" id="floating-note-status">Saved locally.</p>
+        </div>
+    </div>
+
     <script>
         // --- 1. Service Worker Registration ---
         if ('serviceWorker' in navigator) {
@@ -187,7 +204,34 @@
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('main-content');
         
-        // --- Theme ---
+        // --- Floating Notes Logic ---
+        const floatNotesBtn = document.getElementById('floating-notes-btn');
+        const floatNotesPanel = document.getElementById('floating-notes-panel');
+        const floatNotesClose = document.getElementById('close-notes-btn');
+        const floatNotesArea = document.getElementById('floating-book-notes');
+        const floatNotesStatus = document.getElementById('floating-note-status');
+        let currentLoadedBookId = null;
+
+        floatNotesBtn.onclick = () => {
+            floatNotesPanel.classList.remove('hidden');
+            requestAnimationFrame(() => floatNotesPanel.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none'));
+            floatNotesArea.focus();
+        };
+        floatNotesClose.onclick = () => {
+            floatNotesPanel.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+            setTimeout(() => floatNotesPanel.classList.add('hidden'), 300);
+        };
+        
+        let floatSaveTimeout;
+        floatNotesArea.oninput = () => {
+            if(!currentLoadedBookId) return;
+            floatNotesStatus.textContent = 'Saving...';
+            clearTimeout(floatSaveTimeout);
+            floatSaveTimeout = setTimeout(() => {
+                localStorage.setItem(`note_${currentLoadedBookId}`, floatNotesArea.value);
+                floatNotesStatus.textContent = 'Saved locally.';
+            }, 500);
+        };
         function setTheme(isDark) {
             document.documentElement.classList.toggle('dark', isDark);
             document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
@@ -364,12 +408,16 @@
                     const audioUrl = (data.book_audio_hq && data.book_audio_hq !== "null") ? data.book_audio_hq : (data.book_audio && data.book_audio !== "null") ? data.book_audio : null;
                     if (audioUrl) {
                         audioSection = `
-                        <div class="my-6 p-4 bg-indigo-50/95 dark:bg-indigo-900/90 border border-indigo-200 dark:border-indigo-800/50 rounded-xl shadow-lg sticky top-4 z-40 backdrop-blur-sm">
-                            <h4 class="text-sm font-bold text-indigo-900 dark:text-indigo-300 mb-2">🎧 Audiobook Available</h4>
-                            <audio controls class="w-full h-10 rounded-lg" preload="metadata"><source src="${audioUrl}" type="audio/mpeg"></audio>
-                            <a href="${audioUrl}" target="_blank" download class="block mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Download MP3</a>
+                        <div class="my-6">
+                            <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl mb-2 flex justify-between items-center">
+                                <h4 class="text-sm font-bold text-indigo-900 dark:text-indigo-300">🎧 Audiobook Available</h4>
+                                <a href="${audioUrl}" target="_blank" download class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Download MP3</a>
+                            </div>
+                            <div id="audio-wrapper" class="transition-all duration-300 z-40 rounded-xl">
+                                <audio id="book-audio" controls class="w-full h-10 rounded-lg shadow-sm bg-indigo-50 dark:bg-gray-800" preload="metadata"><source src="${audioUrl}" type="audio/mpeg"></audio>
+                            </div>
                         </div>`;
-                    }
+                    };
 
                     let coverImage = '';
                     if (data.book_image && data.book_image !== "null" && data.book_image !== "") {
@@ -411,13 +459,6 @@
                                 ${description}
                             </div>
                             
-                            <hr class="border-gray-200 dark:border-gray-700 my-8">
-                            
-                            <div class="mt-8 bg-yellow-50 dark:bg-yellow-900/10 p-4 md:p-6 rounded-2xl border border-yellow-200 dark:border-yellow-800/30">
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">📝 Personal Notes</h3>
-                                <textarea id="book-notes" rows="4" class="w-full p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm reader-sans text-gray-800 dark:text-gray-200 resize-y" placeholder="Type your notes here... They will be saved automatically to your browser.">${savedNote}</textarea>
-                                <p class="text-xs text-gray-500 mt-2 text-right" id="note-status">Saved locally.</p>
-                            </div>
                         </article>
                     `;
 
@@ -440,17 +481,23 @@
                         loadBook(id, title, false); // re-render UI
                     };
 
-                    const noteArea = document.getElementById('book-notes');
-                    const noteStatus = document.getElementById('note-status');
-                    let saveTimeout;
-                    noteArea.oninput = () => {
-                        noteStatus.textContent = 'Saving...';
-                        clearTimeout(saveTimeout);
-                        saveTimeout = setTimeout(() => {
-                            localStorage.setItem(`note_${id}`, noteArea.value);
-                            noteStatus.textContent = 'Saved locally.';
-                        }, 500);
-                    };
+                    // Floating Notes logic updates
+                    currentLoadedBookId = id;
+                    floatNotesArea.value = savedNote;
+                    floatNotesStatus.textContent = 'Loaded.';
+                    floatNotesBtn.classList.remove('hidden');
+
+                    // Audio Sticky logic
+                    const audioEl = document.getElementById('book-audio');
+                    const audioWrap = document.getElementById('audio-wrapper');
+                    if (audioEl && audioWrap) {
+                        audioEl.onplay = () => {
+                            audioWrap.classList.add('sticky', 'top-4', 'shadow-2xl');
+                        };
+                        audioEl.onpause = () => {
+                            audioWrap.classList.remove('sticky', 'top-4', 'shadow-2xl');
+                        };
+                    }
                 })
                 .catch(err => {
                     viewEl.innerHTML = `<div class="p-6 bg-red-50 text-red-600 rounded-xl text-center shadow-sm">Error: ${err.message}</div>`;
