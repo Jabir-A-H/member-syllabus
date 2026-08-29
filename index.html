@@ -175,6 +175,15 @@
         </div>
     </div>
 
+    <!-- Floating Audio Player -->
+    <div id="floating-audio-panel" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-300 translate-y-20 opacity-0 pointer-events-none flex flex-col hidden p-3">
+        <div class="flex justify-between items-center mb-2 px-1">
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">🎧 Now Playing</h3>
+            <button id="close-audio-btn" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        </div>
+        <audio id="floating-audio-player" controls class="w-full h-10 rounded-lg shadow-sm outline-none" preload="metadata"></audio>
+    </div>
+
     <script>
         // --- 1. Service Worker Registration ---
         if ('serviceWorker' in navigator) {
@@ -232,6 +241,24 @@
                 floatNotesStatus.textContent = 'Saved locally.';
             }, 500);
         };
+        // --- Floating Audio Logic ---
+        const floatAudioPanel = document.getElementById('floating-audio-panel');
+        const floatAudioPlayer = document.getElementById('floating-audio-player');
+        const floatAudioClose = document.getElementById('close-audio-btn');
+        
+        floatAudioClose.onclick = () => {
+            floatAudioPlayer.pause();
+            floatAudioPanel.classList.add('opacity-0', 'translate-y-20', 'pointer-events-none');
+            setTimeout(() => floatAudioPanel.classList.add('hidden'), 300);
+        };
+        
+        function playAudiobook(url) {
+            floatAudioPlayer.src = url;
+            floatAudioPanel.classList.remove('hidden');
+            requestAnimationFrame(() => floatAudioPanel.classList.remove('opacity-0', 'translate-y-20', 'pointer-events-none'));
+            floatAudioPlayer.play();
+        }
+
         function setTheme(isDark) {
             document.documentElement.classList.toggle('dark', isDark);
             document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
@@ -409,15 +436,15 @@
                     if (audioUrl) {
                         audioSection = `
                         <div class="my-6">
-                            <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl mb-2 flex justify-between items-center">
+                            <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl mb-2 flex justify-between items-center flex-wrap gap-2">
                                 <h4 class="text-sm font-bold text-indigo-900 dark:text-indigo-300">🎧 Audiobook Available</h4>
-                                <a href="${audioUrl}" target="_blank" download class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Download MP3</a>
-                            </div>
-                            <div id="audio-wrapper" class="transition-all duration-300 z-40 rounded-xl">
-                                <audio id="book-audio" controls class="w-full h-10 rounded-lg shadow-sm bg-indigo-50 dark:bg-gray-800" preload="metadata"><source src="${audioUrl}" type="audio/mpeg"></audio>
+                                <div class="flex gap-2 items-center">
+                                    <button onclick="playAudiobook('${audioUrl}')" class="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold shadow hover:bg-indigo-700 transition">▶ Play Now</button>
+                                    <a href="${audioUrl}" target="_blank" download class="px-4 py-1.5 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs font-bold shadow hover:bg-gray-50 transition">Download</a>
+                                </div>
                             </div>
                         </div>`;
-                    };
+                    }
 
                     let coverImage = '';
                     if (data.book_image && data.book_image !== "null" && data.book_image !== "") {
@@ -487,14 +514,6 @@
                     floatNotesStatus.textContent = 'Loaded.';
                     floatNotesBtn.classList.remove('hidden');
 
-                    // Audio Sticky logic
-                    const audioEl = document.getElementById('book-audio');
-                    const audioWrap = document.getElementById('audio-wrapper');
-                    if (audioEl && audioWrap) {
-                        audioEl.onplay = () => {
-                            audioWrap.classList.add('sticky', 'top-4', 'shadow-2xl');
-                        };
-                    }
                 })
                 .catch(err => {
                     viewEl.innerHTML = `<div class="p-6 bg-red-50 text-red-600 rounded-xl text-center shadow-sm">Error: ${err.message}</div>`;
